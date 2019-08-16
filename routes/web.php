@@ -11,9 +11,9 @@
 |
 */
 
-// Route::get('/', function () {
-//     return view('welcome');
-// });
+Route::get('/', function () {
+    return view('welcome');
+});
 
 Route::post('/createNote','NoteController@createNote');
 Route::put('/editNote','NoteController@editNote');
