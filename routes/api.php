@@ -18,3 +18,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::post('/register','UserController@registerUser');
+Route::get('/login','UserController@login');
+Route::get('/forgetpassword','UserController@forgetPassword');
+Route::put('/resetpassword','UserController@resetPassword');
+Route::get('/verify/{token}','UserController@getToken');
+

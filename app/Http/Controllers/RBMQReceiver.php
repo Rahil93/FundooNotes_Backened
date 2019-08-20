@@ -27,7 +27,7 @@ class RBMQReceiver extends Controller
         
             $transporter = (new \Swift_SmtpTransport('smtp.gmail.com', 465, 'ssl'))
                                             ->setUsername($from_email)
-                                            ->setPassword('1245789635');
+                                            ->setPassword('1478524935');
         
             $mailer = new \Swift_Mailer($transporter);  
         
