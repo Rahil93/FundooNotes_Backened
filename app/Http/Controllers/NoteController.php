@@ -11,8 +11,30 @@ class NoteController extends Controller
     public function createNote()
     {
         $input = Input::all();
-        DB::table('notes')
-            ->insert($input);
+        
+        if (preg_match('/\s/',$input['title']) == true && preg_match('/\s/',$input['description']) == true) 
+        {
+            DB::table('notes')
+                ->insert([[$input],['is_trash' => 1]]);
+            echo json_encode([
+                    "Message" => "Inserted Successfully with blank space"
+                ]);
+        }
+        elseif ($input['title'] == null && $input['description'] == null) 
+        {
+            echo json_encode([
+                "Message" => "Title & description must not be empty"
+            ]);         
+        }
+        else 
+        {
+            DB::table('notes')
+                ->insert($input);
+            echo json_encode([
+                    "Message" => "Inserted Successfully"
+                ]);
+        }
+        
     }
 
     public function editNote()

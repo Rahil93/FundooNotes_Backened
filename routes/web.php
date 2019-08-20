@@ -28,6 +28,9 @@ Route::get('/displayTrashNote','NoteController@displayTrashNote');
 Route::get('/displayArchiveNote','NoteController@displayArchiveNote');
 Route::get('/displayReminder','NoteController@displayReminder');
 
+// Route::post('/register','UserController@registerUser');
+
+Route::get('/register/verifyEmail/{token}','UserController@verifyEmail');
 
 
 
