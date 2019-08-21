@@ -22,4 +22,13 @@ Route::get('/login','UserController@login');
 Route::get('/forgetpassword','UserController@forgetPassword');
 Route::put('/resetpassword','UserController@resetPassword');
 Route::get('/verify/{token}','UserController@getToken');
+Route::post('/createlabel','LabelController@createLabel');
+Route::delete('/deletelabel','LabelController@deleteLabel');
+Route::put('/createnotelabel','LabelController@createNoteLabel');
+Route::delete('/deletenotelabel','LabelController@deleteNoteLabel');
+Route::put('/editlabel','LabelController@editLabel');
+Route::put('/createlabelnote','LabelController@createNoteLabel');
+
+
+
 

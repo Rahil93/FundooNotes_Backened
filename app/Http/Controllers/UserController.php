@@ -161,7 +161,6 @@ class UserController extends Controller
         $token = Redis::get('token');
         $key = JWT::DecodeToken($token);
         $key = json_decode($key,true);
-        var_dump($request['password']);
         $user = User::where(['email' => $key["email"]])->first();
 
         if ($user) 
