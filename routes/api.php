@@ -28,6 +28,8 @@ Route::put('/createnotelabel','LabelController@createNoteLabel');
 Route::delete('/deletenotelabel','LabelController@deleteNoteLabel');
 Route::put('/editlabel','LabelController@editLabel');
 Route::put('/createlabelnote','LabelController@createNoteLabel');
+Route::post('/addcollab','CollabController@addCollab');
+Route::put('/removecollab','CollabController@removeCollab');
 
 
 

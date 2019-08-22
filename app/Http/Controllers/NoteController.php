@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
 use DB;
+Use App\Notes;
+Use App\Users;
 
 class NoteController extends Controller
 {
@@ -146,6 +148,45 @@ class NoteController extends Controller
             echo "<pre>";
             echo json_encode($note)."<br>";
         }
+    }
+
+    public function addCollab(Request $request)
+    {
+        $notes = Notes::find($request['notes_id']);
+        $user = Users::where('email',$request['email'])->first();
+
+        $user_id = $notes->user_id;
+
+        if ($notes->users->contains($user)) 
+        {
+            return response()->json(['message' => 'Collaborator already Added'],400);            
+        }
+        else 
+        {
+            $notes->users()->save($user);
+            
+            $note = Notes::create([
+                'title' => $notes->title,
+                'description' => $notes->description,
+                'user_id' => $user->id
+                ]);
+    
+            $note_id = $note->id;
+    
+            $notes = Notes::find($note_id);
+            $user = Users::find($user_id);
+    
+            if ($notes->users->contains($user)) 
+            {
+                return response()->json(['message' => 'Collaborator already Added'],400);            
+            }
+            else 
+            {
+                $note->users()->save($user); 
+                return response()->json(['message' => 'Collaborator Added'],200);               
+            }
+        }
+       
     }
 }
 ?>

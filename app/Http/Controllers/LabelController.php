@@ -76,6 +76,8 @@ class LabelController extends Controller
         $note = \App\Notes::find($request['notes_id']);
         $label = Labels::find($request['labels_id']);
 
+        dd($note);
+
 
         if ($note->labels->contains($label)) 
         {
@@ -85,7 +87,7 @@ class LabelController extends Controller
         {
             if ($note->labels()->save($label)) 
             {
-                return response()->json(['message' => 'Added Successfully'],400);                
+                return response()->json(['message' => 'Added Successfully'],200);                
             }
             else 
             {
@@ -100,11 +102,11 @@ class LabelController extends Controller
         $labnot = $note->labels()->detach($request['labels_id']);
         if ($labnot) 
         {
-            return response()->json(['message' => 'Remove successfully']);
+            return response()->json(['message' => 'Remove successfully'],200);
         }
         else 
         {
-            return response()->json(['message' => 'Error while removing']);
+            return response()->json(['message' => 'Error while removing'],400);
         }
     }
 }

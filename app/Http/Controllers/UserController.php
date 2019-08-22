@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redis;
 use App\Http\Controllers\RBMQSender;
 use App\Http\Controllers\JWT;
-use App\User;
+use App\Users;
 
 
 class UserController extends Controller
@@ -34,7 +34,7 @@ class UserController extends Controller
         $input = $request->all();
         $input['created_at'] = now();
         $input['password'] = md5($input['password']);
-        $user = User::create($input);
+        $user = Users::create($input);
         $toEmail = $user->email;   
 
         $key = ['id' => $user->id];
@@ -61,7 +61,7 @@ class UserController extends Controller
     {
         $key = JWT::DecodeToken($token);
         $key = json_decode($key,true);
-        $user = User::where(['id' => $key['id']])->first();
+        $user = Users::where(['id' => $key['id']])->first();
         if ($user) 
         { 
             if ($user->email_verified == 0) 
@@ -87,7 +87,7 @@ class UserController extends Controller
         $input = $request->all();
         $input['password'] = md5($input['password']);
 
-        $user = User::where('email',$input['email'])->first();
+        $user = Users::where('email',$input['email'])->first();
         if ($user) 
         {
             if ($user->password === $input['password']) {
@@ -125,7 +125,7 @@ class UserController extends Controller
             return response()->json(['error' => $validator->errors()],201);
         }
         $input = $request->all();
-        $user = User::where($input)->first();
+        $user = Users::where($input)->first();
         if ($user) 
         {
             $key = json_encode($input);
@@ -161,7 +161,7 @@ class UserController extends Controller
         $token = Redis::get('token');
         $key = JWT::DecodeToken($token);
         $key = json_decode($key,true);
-        $user = User::where(['email' => $key["email"]])->first();
+        $user = Users::where(['email' => $key["email"]])->first();
 
         if ($user) 
         {

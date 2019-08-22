@@ -16,4 +16,5 @@ class Labels extends Model
     {
         return $this->belongsToMany('\App\Notes');
     }
+    
 }
