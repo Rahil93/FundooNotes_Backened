@@ -30,6 +30,7 @@ Route::put('/editlabel','LabelController@editLabel');
 Route::put('/createlabelnote','LabelController@createNoteLabel');
 Route::post('/addcollab','CollabController@addCollab');
 Route::put('/removecollab','CollabController@removeCollab');
+Route::delete('/deletechecklist', 'ChecklistController@deleteChecklist');
 
 
 
