@@ -56,7 +56,7 @@ class LabelController extends Controller
                 }
                 else 
                 {
-                    return response()->json(['message' => 'Error While editing label'],400);
+                    return response()->jston(['message' => 'Error While editing label'],400);
                 }
             }
             else 
@@ -75,9 +75,6 @@ class LabelController extends Controller
     {
         $note = \App\Notes::find($request['notes_id']);
         $label = Labels::find($request['labels_id']);
-
-        dd($note);
-
 
         if ($note->labels->contains($label)) 
         {

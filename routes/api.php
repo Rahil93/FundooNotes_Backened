@@ -31,6 +31,11 @@ Route::put('/createlabelnote','LabelController@createNoteLabel');
 Route::post('/addcollab','CollabController@addCollab');
 Route::put('/removecollab','CollabController@removeCollab');
 Route::delete('/deletechecklist', 'ChecklistController@deleteChecklist');
+Route::put('/upload','ImageUploadController@uploadImage');
+Route::get('/fetchimage','ImageUploadController@displayImage');
+Route::delete('/remove','ImageUploadController@removeImage');
+
+
 
 
 
