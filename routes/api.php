@@ -17,8 +17,17 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::group([
+    'middleware' => 'cors','auth:api'
+],function (){
+ Route::post('/login','UserController@login');
+
+});
+
+// Route::post('/login','UserController@login');
+
+
 Route::post('/register','UserController@registerUser');
-Route::get('/login','UserController@login');
 Route::get('/forgetpassword','UserController@forgetPassword');
 Route::put('/resetpassword','UserController@resetPassword');
 Route::get('/verify/{token}','UserController@getToken');

@@ -35,3 +35,7 @@ Route::get('/register/verifyEmail/{token}','UserController@verifyEmail');
 
 
 
+
+Auth::routes();
+
+Route::get('/home', 'HomeController@index')->name('home');

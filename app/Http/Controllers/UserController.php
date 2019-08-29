@@ -9,10 +9,15 @@ use Illuminate\Support\Facades\Redis;
 use App\Http\Controllers\RBMQSender;
 use App\Http\Controllers\JWT;
 use App\Users;
+use Illuminate\Support\Facades\Hash;
 
 
 class UserController extends Controller
 {
+    // public function __construct()
+    // {
+    //     $this->middleware('auth');
+    // }
     
     public function registerUser(Request $request)
     {
@@ -33,27 +38,27 @@ class UserController extends Controller
 
         $input = $request->all();
         $input['created_at'] = now();
-        $input['password'] = md5($input['password']);
+        $input['password'] = Hash::make($input['password']);
         $user = Users::create($input);
-        $toEmail = $user->email;   
+        // $toEmail = $user->email;   
 
-        $key = ['id' => $user->id];
-        $key = json_encode($key);
-        $token = JWT::GenerateToken($key);
+        // $key = ['id' => $user->id];
+        // $key = json_encode($key);
+        // $token = JWT::GenerateToken($key);
 
-        $rabbitmq = new RBMQSender();
+        // $rabbitmq = new RBMQSender();
 
-        $subject = "Please verify email for login";
-        $message = "Hi ".$user->firstname." ".$user->lastname.", \nThis is email verification mail from Fundoo Login Register system.\nFor complete registration process and login into system you have to verify you email by click this link.\n".url('/')."/register/verifyEmail/".$token."\nOnce you click this link your email will be verified and you can login into system.\nThanks.";
+        // $subject = "Please verify email for login";
+        // $message = "Hi ".$user->firstname." ".$user->lastname.", \nThis is email verification mail from Fundoo Login Register system.\nFor complete registration process and login into system you have to verify you email by click this link.\n".url('/')."/register/verifyEmail/".$token."\nOnce you click this link your email will be verified and you can login into system.\nThanks.";
 
-        if($rabbitmq->sendRabQueue($toEmail,$subject,$message))
-        {
-            return response()->json(['success' => $token, 'message'=> 'Please Check Mail for Email Verification.'],200);
-        }
-        else 
-        {
-            return response()->json(['success' => $token, 'message'=> 'Error While Sending Mail.'],400);
-        }
+        // if($rabbitmq->sendRabQueue($toEmail,$subject,$message))
+        // {
+        //     return response()->json(['success' => $token, 'message'=> 'Please Check Mail for Email Verification.'],200);
+        // }
+        // else 
+        // {
+        //     return response()->json(['success' => $token, 'message'=> 'Error While Sending Mail.'],400);
+        // }
         
     }
 
@@ -85,30 +90,36 @@ class UserController extends Controller
     public function login(Request $request)
     {
         $input = $request->all();
-        $input['password'] = md5($input['password']);
+        // $input = json_decode($input,true);
+        // dd($input);
+        // return response()->json(['message' => 'Valid User.','data' => $input['email']],200);
+        // $input['password'] = md5($input['password']);
 
-        $user = Users::where('email',$input['email'])->first();
-        if ($user) 
+        // $user = Users::where('email',$input['email'])->first();
+
+        $credential = ['email' => $input['email'], 'password' => $input['password']];
+        if (Auth::attempt($credential)) 
         {
-            if ($user->password === $input['password']) {
-                if ($user->email_verified === 1) 
-                {
-                    return response()->json(['message' => 'Valid User.'],200);   
-                }
-                else 
-                {
-                    return response()->json(['message' => 'Please Verify Your Email.'],400);           
-                }
-            }
-            else 
-            {
-                return response()->json(['message' => 'Invalid Password.'],400);
-            }  
+            $user = Auth::user();
+            // if ($user->password === $input['password']) {
+                // if ($user->email_verified === 1) 
+                // {
+                    return response()->json(['message' => 'Valid User.','data' => $user],200);   
+                // }
+                // else 
+                // {
+                //     return response()->json(['message' => 'Please Verify Your Email.'],400);           
+                // }
+            // }
+            // else 
+            // {
+            //     return response()->json(['message' => 'Invalid Password.'],400);
+            // }  
             
         }
         else
         {
-            return response()->json(['message' => 'Invalid Email.'],400);
+            return response()->json(['message' => 'Invalid User.'],400);
         }
     }
 

@@ -5,6 +5,7 @@ namespace App;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+// use Illuminate\Auth\Authenticatable as Authen;
 use Laravel\Passport\HasApiTokens;
 
 class Users extends Authenticatable 
@@ -16,6 +17,10 @@ class Users extends Authenticatable
      *
      * @var array
      */
+    protected $fillable = [
+        'email','password','firstname','lastname'
+    ];
+
     protected $guarded = [
         'confirm_password'
     ];
