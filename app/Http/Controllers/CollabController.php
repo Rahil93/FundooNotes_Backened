@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-Use App\Notes;
-Use App\Users;
+Use App\model\Notes;
+Use App\model\Users;
 
 class CollabController extends Controller
 {

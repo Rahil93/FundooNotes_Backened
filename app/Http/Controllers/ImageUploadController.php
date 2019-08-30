@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Cloudinary\Uploader;
-use App\Users;
+use App\model\Users;
 
 class ImageUploadController extends Controller
 {

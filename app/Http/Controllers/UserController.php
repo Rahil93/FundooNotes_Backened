@@ -8,16 +8,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redis;
 use App\Http\Controllers\RBMQSender;
 use App\Http\Controllers\JWT;
-use App\Users;
+use App\model\Users;
 use Illuminate\Support\Facades\Hash;
 
 
 class UserController extends Controller
 {
-    // public function __construct()
-    // {
-    //     $this->middleware('auth');
-    // }
     
     public function registerUser(Request $request)
     {
@@ -37,36 +33,51 @@ class UserController extends Controller
         }
 
         $input = $request->all();
-        $input['created_at'] = now();
+        // $input['created_at'] = now();
         $input['password'] = Hash::make($input['password']);
         $user = Users::create($input);
-        // $toEmail = $user->email;   
+        $token = $user->createToken('star')->accessToken;
+
+        Redis::set($token,$token);
+        $toEmail = $user->email;   
 
         // $key = ['id' => $user->id];
         // $key = json_encode($key);
         // $token = JWT::GenerateToken($key);
 
-        // $rabbitmq = new RBMQSender();
+        $rabbitmq = new RBMQSender();
 
-        // $subject = "Please verify email for login";
-        // $message = "Hi ".$user->firstname." ".$user->lastname.", \nThis is email verification mail from Fundoo Login Register system.\nFor complete registration process and login into system you have to verify you email by click this link.\n".url('/')."/register/verifyEmail/".$token."\nOnce you click this link your email will be verified and you can login into system.\nThanks.";
+        $subject = "Please verify email for login";
+        $message = "Hi ".$user->firstname." ".$user->lastname.", \nThis is email verification mail from Fundoo Login Register system.\nFor complete registration process and login into system you have to verify you email by click this link.\n".url('/')."/register/verifyEmail/".$token."\nOnce you click this link your email will be verified and you can login into system.\nThanks.";
 
-        // if($rabbitmq->sendRabQueue($toEmail,$subject,$message))
-        // {
-        //     return response()->json(['success' => $token, 'message'=> 'Please Check Mail for Email Verification.'],200);
-        // }
-        // else 
-        // {
-        //     return response()->json(['success' => $token, 'message'=> 'Error While Sending Mail.'],400);
-        // }
+        if($rabbitmq->sendRabQueue($toEmail,$subject,$message))
+        {
+            return response()->json(['success' => $token, 'message'=> 'Please Check Mail for Email Verification.'],200);
+        }
+        else 
+        {
+            return response()->json(['success' => $token, 'message'=> 'Error While Sending Mail.'],400);
+        }
         
     }
 
     public function verifyEmail($token)
     {
-        $key = JWT::DecodeToken($token);
-        $key = json_decode($key,true);
-        $user = Users::where(['id' => $key['id']])->first();
+        // $key = JWT::DecodeToken($token);
+        // $key = json_decode($key,true);
+
+        $token = Redis::get($token);
+        if (!$token) 
+        {
+            return response()->json(['message' => 'UnAuthorized User'],400);
+        }
+
+        $tokenArray = preg_split("/\,/",$token);
+        $decodetoken = base64_decode($tokenArray[1]);
+        $decodetoken = json_decode($decodetoken,true);
+        $user_id = $decodetoken['sub'];
+
+        $user = Users::where(['id' => $user_id])->first();
         if ($user) 
         { 
             if ($user->email_verified == 0) 
@@ -101,15 +112,16 @@ class UserController extends Controller
         if (Auth::attempt($credential)) 
         {
             $user = Auth::user();
+            $token = $user->createToken('star')->accessToken;
             // if ($user->password === $input['password']) {
-                // if ($user->email_verified === 1) 
-                // {
-                    return response()->json(['message' => 'Valid User.','data' => $user],200);   
-                // }
-                // else 
-                // {
-                //     return response()->json(['message' => 'Please Verify Your Email.'],400);           
-                // }
+                if ($user->email_verified === 1) 
+                {
+                    return response()->json(['message' => 'Valid User.','data' => $token],200);   
+                }
+                else 
+                {
+                    return response()->json(['message' => 'Please Verify Your Email.'],400);           
+                }
             // }
             // else 
             // {
@@ -135,12 +147,16 @@ class UserController extends Controller
         {
             return response()->json(['error' => $validator->errors()],201);
         }
+
         $input = $request->all();
         $user = Users::where($input)->first();
+
         if ($user) 
         {
-            $key = json_encode($input);
-            $token = JWT::GenerateToken($key);
+            // $key = json_encode($input);
+            // $token = JWT::GenerateToken($key);
+
+            $token = $user->createToken('star')->accessToken;
 
             $rabbitmq = new RBMQSender();
 
@@ -164,19 +180,28 @@ class UserController extends Controller
 
     public function getToken($token)
     {
-        Redis::set('token',$token);
+        Redis::set($token,$token);
     }
 
     public function resetPassword(Request $request)
     {
-        $token = Redis::get('token');
-        $key = JWT::DecodeToken($token);
-        $key = json_decode($key,true);
-        $user = Users::where(['email' => $key["email"]])->first();
+        $token = Redis::get($token);
+        if (!$token) {
+            return response()->json(['message' => 'UnAuthorized User'],400);
+        }
+        // $key = JWT::DecodeToken($token);
+        // $key = json_decode($key,true);
+
+        $tokenArray = preg_split("/\,/",$token);
+        $decodetoken = base64_decode($tokenArray[1]);
+        $decodetoken = json_decode($decodetoken,true);
+        $user_id = $decodetoken['sub'];
+
+        $user = Users::where(['id' => $user_id])->first();
 
         if ($user) 
         {
-            $user->password = md5($request['password']);
+            $user->password = Hash::make($request['password']);
             $user->save();
             return response()->json(['message' => 'Password is Setted'],200);   
         }

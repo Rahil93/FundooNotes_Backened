@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Labels;
+use App\model\Labels;
 
 class LabelController extends Controller
 {
@@ -95,7 +95,7 @@ class LabelController extends Controller
 
     public function deleteNoteLabel(Request $request)
     {
-        $note = \App\Notes::find($request['notes_id']);
+        $note = \App\Notes::find($request['a']);
         $labnot = $note->labels()->detach($request['labels_id']);
         if ($labnot) 
         {

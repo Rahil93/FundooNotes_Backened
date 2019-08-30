@@ -18,7 +18,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::group([
-    'middleware' => 'cors','auth:api'
+    'middleware' => 'cors'
 ],function (){
  Route::post('/login','UserController@login');
 
