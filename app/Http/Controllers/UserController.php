@@ -6,10 +6,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redis;
-use App\Http\Controllers\RBMQSender;
-use App\Http\Controllers\JWT;
-use App\model\Users;
+use App\Libraries\RBMQSender;
+use App\Model\Users;
 use Illuminate\Support\Facades\Hash;
+use Cloudinary\Uploader;
+
 
 
 class UserController extends Controller
@@ -29,21 +30,16 @@ class UserController extends Controller
 
         if ($validator->fails()) 
         {
-            return response()->json(['error' => $validator->errors()],201);
+            return response()->json(['error' => $validator->errors()],400);
         }
 
         $input = $request->all();
-        // $input['created_at'] = now();
         $input['password'] = Hash::make($input['password']);
         $user = Users::create($input);
         $token = $user->createToken('star')->accessToken;
 
         Redis::set($token,$token);
         $toEmail = $user->email;   
-
-        // $key = ['id' => $user->id];
-        // $key = json_encode($key);
-        // $token = JWT::GenerateToken($key);
 
         $rabbitmq = new RBMQSender();
 
@@ -63,16 +59,14 @@ class UserController extends Controller
 
     public function verifyEmail($token)
     {
-        // $key = JWT::DecodeToken($token);
-        // $key = json_decode($key,true);
 
         $token = Redis::get($token);
         if (!$token) 
         {
-            return response()->json(['message' => 'UnAuthorized User'],400);
+            return response()->json(['message' => 'UnAuthorized Token'],400);
         }
 
-        $tokenArray = preg_split("/\,/",$token);
+        $tokenArray = preg_split("/\./",$token);
         $decodetoken = base64_decode($tokenArray[1]);
         $decodetoken = json_decode($decodetoken,true);
         $user_id = $decodetoken['sub'];
@@ -80,15 +74,17 @@ class UserController extends Controller
         $user = Users::where(['id' => $user_id])->first();
         if ($user) 
         { 
-            if ($user->email_verified == 0) 
+            if ($user->email_verified) 
             {
-                $user->email_verified = 1;
-                $user->save();
-                return response()->json(['message' => 'Verification of email has Done Successfully.'],200);    
+                return response()->json(['message' => "Verification of email has already done."],400);   
             }
             else 
             {
-                return response()->json(['message' => "Verification of email has already done."],400);
+                $user->email_verified = 1;
+                $user->save();
+                Redis::del($token);
+                return response()->json(['message' => 'Verification of email has Done Successfully.'],200); 
+                
             }
             
         }
@@ -101,12 +97,7 @@ class UserController extends Controller
     public function login(Request $request)
     {
         $input = $request->all();
-        // $input = json_decode($input,true);
-        // dd($input);
-        // return response()->json(['message' => 'Valid User.','data' => $input['email']],200);
-        // $input['password'] = md5($input['password']);
-
-        // $user = Users::where('email',$input['email'])->first();
+        
 
         $credential = ['email' => $input['email'], 'password' => $input['password']];
         if (Auth::attempt($credential)) 
@@ -114,7 +105,7 @@ class UserController extends Controller
             $user = Auth::user();
             $token = $user->createToken('star')->accessToken;
             // if ($user->password === $input['password']) {
-                if ($user->email_verified === 1) 
+                if ($user->email_verified) 
                 {
                     return response()->json(['message' => 'Valid User.','data' => $token],200);   
                 }
@@ -140,7 +131,7 @@ class UserController extends Controller
         
         $validator = Validator::make($request->all(),
                 [
-                    'email' => 'required|email:users',
+                    'email' => 'required|email',
                 ]);
 
         if ($validator->fails()) 
@@ -153,15 +144,14 @@ class UserController extends Controller
 
         if ($user) 
         {
-            // $key = json_encode($input);
-            // $token = JWT::GenerateToken($key);
 
             $token = $user->createToken('star')->accessToken;
+            Redis::set($token,$token);
 
             $rabbitmq = new RBMQSender();
 
             $subject = "Please verify email to reset your password";
-            $message = "Hi ".$user->firstname." ".$user->lastname.", \nThis is email verification mail from Fundoo Login Register system.\nFor complete reset password process and login into system you have to verify you email by click this link.\n".url('/')."/api/verify/".$token."\nOnce you click this link your email will be verified and you can login into system.\nThanks.";
+            $message = "Hi ".$user->firstname." ".$user->lastname.", \nThis is email verification mail from Fundoo Login Register system.\nFor complete reset password process and login into system you have to verify you email by click this link.\n".url('/')."/api/resetpassword/".$token."\nOnce you click this link your email will be verified and you can login into system.\nThanks.";
 
             if($rabbitmq->sendRabQueue($input['email'],$subject,$message))
             {
@@ -178,21 +168,15 @@ class UserController extends Controller
         }
     }
 
-    public function getToken($token)
-    {
-        Redis::set($token,$token);
-    }
-
-    public function resetPassword(Request $request)
+    public function resetPassword(Request $request,$token)
     {
         $token = Redis::get($token);
-        if (!$token) {
-            return response()->json(['message' => 'UnAuthorized User'],400);
+        if (!$token) 
+        {
+            return response()->json(['message' => 'UnAuthorized token'],400);
         }
-        // $key = JWT::DecodeToken($token);
-        // $key = json_decode($key,true);
 
-        $tokenArray = preg_split("/\,/",$token);
+        $tokenArray = preg_split("/\./",$token);
         $decodetoken = base64_decode($tokenArray[1]);
         $decodetoken = json_decode($decodetoken,true);
         $user_id = $decodetoken['sub'];
@@ -203,6 +187,7 @@ class UserController extends Controller
         {
             $user->password = Hash::make($request['password']);
             $user->save();
+            Redis::del($token);
             return response()->json(['message' => 'Password is Setted'],200);   
         }
         else 
@@ -210,6 +195,108 @@ class UserController extends Controller
             return response()->json(['message' => 'Unathorized token'],400);
         }
         
+    }
+
+    public function uploadImage(Request $request)
+    {
+        $validator = Validator::make($request->all(),
+                [
+                    'photo' => 'required|image|mimes:jpeg,jpg,bmp,png'
+                ]);
+
+        if ($validator->fails()) 
+        {
+            return response()->json(['error' => $validator->errors()],400);
+        }
+        
+        $user = Users::find($request['id']);
+
+        if ($user) 
+        {
+            if ($user->profile_pics == null) 
+            {
+                $this->upload($request['photo'],$user);
+            }
+            else 
+            {
+                $tag = $user->profile_pics;
+                $delete = Uploader::destroy($tag);
+                if ($delete) 
+                {
+                     $this->upload($request['photo'],$user);                           
+                }
+            }
+            
+        }
+        else 
+        {
+            return response()->json(['message' => 'Id not found'],404);
+        }        
+    }
+
+    public function upload($photo,$user)
+    {
+        $upload = Uploader::upload($photo);
+        $pics = $upload['public_id'];
+        $user->profile_pics = $pics;
+
+        if ($user->save()) 
+        {
+            return response()->json(['message' => 'Successfully Uploaded'],200);
+        }
+        else 
+        {
+            return response()->json(['message' => 'Error while Uploadind'],400);
+        }
+    }
+
+    public function displayImage(Request $request)
+    {
+        $user = Users::find($request['id']);
+
+        if ($user) 
+        {
+            $tag = $user->profile_pics;
+            $img = cl_image_tag($tag);
+            print_r($img);
+            return response()->json(['message' => 'Successfully Uploaded'],200);
+        }
+        else 
+        {
+            return response()->json(['message' => 'Id not Found'],404);
+        }
+    }
+
+    public function removeImage(Request $request)
+    {
+        $user = Users::find($request['id']);
+
+        if ($user) 
+        {
+            if ($user->profile_pics == null) 
+            {
+                return response()->json(['message' => 'Profile pics is already removed']);
+            }
+            else 
+            {
+                $tag = $user->profile_pics;
+                $delete = Uploader::destroy($tag);
+                $user->profile_pics = null;
+                $user->save();
+                if ($delete) 
+                {
+                    return response()->json(['message' => 'Profile pics is deleted'],200);
+                }
+                else 
+                {
+                    return response()->json(['message' => 'Error while deleting'],400);
+                }
+            }
+        }
+        else 
+        {
+            return response()->json(['message' => 'Id not found'],404);
+        }
     }
 
 }

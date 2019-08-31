@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\model\Labels;
+use App\Model\Labels;
 
 class LabelController extends Controller
 {

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-Use App\model\Notes;
-Use App\model\Users;
+Use App\Model\Notes;
+Use App\Model\Users;
 
 class CollabController extends Controller
 {
@@ -52,9 +52,15 @@ class CollabController extends Controller
         $user = Users::where('email',$request['email'])->first();
 
         $user_id = $notes->user_id;
+        $title = $notes->title;
+        $id = $user->id;
         
         if($notes->users()->detach($user))
         {
+            $notes = Notes::where(['title' => $title, 'user_id' => $id])->first();
+            $user = Users::find($user_id);
+            $notes->users()->detach($user);
+
             return response()->json(['message' => 'Successfully Remove'],200);                
         }
         else 

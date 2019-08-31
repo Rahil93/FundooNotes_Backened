@@ -1,6 +1,6 @@
 <?php
 
-namespace App\model;
+namespace App\Model;
 
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -30,7 +30,7 @@ class Users extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token',
+         'remember_token',
     ];
 
     /**
@@ -44,7 +44,7 @@ class Users extends Authenticatable
 
     public function notes()
     {
-        return $this->belongsToMany('\App\Notes','users_notes');
+        return $this->belongsToMany('\App\Model\Notes','users_notes');
     }
 
     

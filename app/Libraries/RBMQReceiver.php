@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Libraries;
 
 use Illuminate\Http\Request;
 use PhpAmqpLib\Connection\AMQPConnection;
 
-class RBMQReceiver extends Controller
+class RBMQReceiver
 {
     public function sendMail()
     {
@@ -20,14 +20,14 @@ class RBMQReceiver extends Controller
             $data = json_decode($msg->body, true);
             
             $from = 'Rahil Sayed';
-            $from_email = 'rahil@gmail.com';
+            $from_email = 'abc@gmail.com';
             $to_email = $data['toEmail'];
             $subject = $data['subject'];
             $message = $data['message'];
         
             $transporter = (new \Swift_SmtpTransport('smtp.gmail.com', 465, 'ssl'))
                                             ->setUsername($from_email)
-                                            ->setPassword('1478524935');
+                                            ->setPassword('545455547842');
         
             $mailer = new \Swift_Mailer($transporter);  
         

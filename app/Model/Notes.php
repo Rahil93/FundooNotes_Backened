@@ -1,6 +1,6 @@
 <?php
 
-namespace App\model;
+namespace App\Model;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -14,11 +14,11 @@ class Notes extends Model
 
     public function labels()
     {
-        return $this->belongsToMany('\App\Labels');
+        return $this->belongsToMany('\App\Model\Labels');
     }
 
     public function users()
     {
-        return $this->belongsToMany('\App\Users','users_notes');
+        return $this->belongsToMany('\App\Model\Users','users_notes');
     }
 }

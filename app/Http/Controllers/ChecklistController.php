@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\model\Notes;
+use App\Model\Notes;
 
 class ChecklistController extends Controller
 {

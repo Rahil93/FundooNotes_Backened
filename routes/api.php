@@ -29,8 +29,7 @@ Route::group([
 
 Route::post('/register','UserController@registerUser');
 Route::get('/forgetpassword','UserController@forgetPassword');
-Route::put('/resetpassword','UserController@resetPassword');
-Route::get('/verify/{token}','UserController@getToken');
+Route::put('/resetpassword/{token}','UserController@resetPassword');
 Route::post('/createlabel','LabelController@createLabel');
 Route::delete('/deletelabel','LabelController@deleteLabel');
 Route::put('/createnotelabel','LabelController@createNoteLabel');
@@ -40,9 +39,9 @@ Route::put('/createlabelnote','LabelController@createNoteLabel');
 Route::post('/addcollab','CollabController@addCollab');
 Route::put('/removecollab','CollabController@removeCollab');
 Route::delete('/deletechecklist', 'ChecklistController@deleteChecklist');
-Route::put('/upload','ImageUploadController@uploadImage');
-Route::get('/fetchimage','ImageUploadController@displayImage');
-Route::delete('/remove','ImageUploadController@removeImage');
+Route::put('/upload','UserController@uploadImage');
+Route::get('/fetchimage','UserController@displayImage');
+Route::delete('/remove','UserController@removeImage');
 
 
 

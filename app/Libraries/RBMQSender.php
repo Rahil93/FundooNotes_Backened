@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Libraries;
 
 use Illuminate\Http\Request;
 use PhpAmqpLib\Connection\AMQPConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
-class RBMQSender extends Controller
+class RBMQSender 
 {
     public function sendRabQueue($toEmail,$subject,$message)
     {

@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Http\Controllers\RBMQReceiver;
+use App\Libraries\RBMQReceiver;
 
 class EmailCron extends Command
 {
@@ -19,7 +19,7 @@ class EmailCron extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Send email to user';
 
     /**
      * Create a new command instance.
