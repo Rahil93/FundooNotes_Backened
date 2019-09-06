@@ -14,28 +14,3 @@
 Route::get('/', function () {
     return view('welcome');
 });
-
-Route::post('/createNote','NoteController@createNote');
-Route::put('/editNote','NoteController@editNote');
-Route::post('/setReminder','NoteController@setReminder');
-Route::post('/trashNote','NoteController@trashNote');
-Route::post('/restoreNote','NoteController@restoreNote');
-Route::post('/archiveNote','NoteController@archiveNote');
-Route::post('/unarchiveNote','NoteController@unarchiveNote');
-Route::delete('/deleteNote','NoteController@deleteNote');
-Route::get('/displayNote','NoteController@displayNote');
-Route::get('/displayTrashNote','NoteController@displayTrashNote');
-Route::get('/displayArchiveNote','NoteController@displayArchiveNote');
-Route::get('/displayReminder','NoteController@displayReminder');
-
-// Route::post('/register','UserController@registerUser');
-
-Route::get('/register/verifyEmail/{token}','UserController@verifyEmail');
-
-
-
-
-
-Auth::routes();
-
-Route::get('/home', 'HomeController@index')->name('home');
