@@ -17,14 +17,24 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::middleware('cors:api')->get('/user', function (Request $request) {
+    return $request->user();
+});
+
 Route::group([
     'middleware' => 'cors'
 ],function (){
- Route::post('/login','UserController@login');
 
 });
 
+Route::group([
+    'middleware' => 'auth:api'
+],function(){
+});
 
+Route::post('/login','UserController@login');
+
+Route::get('/displayNote','NoteController@displayNote');
 
 Route::post('/register','UserController@registerUser');
 Route::get('/register/verifyEmail/{token}','UserController@verifyEmail');
@@ -48,13 +58,12 @@ Route::delete('/deletechecklist', 'ChecklistController@deleteChecklist');
 
 Route::post('/createNote','NoteController@createNote');
 Route::put('/editNote','NoteController@editNote');
-Route::post('/setReminder','NoteController@setReminder');
-Route::post('/trashNote','NoteController@trashNote');
-Route::post('/restoreNote','NoteController@restoreNote');
-Route::post('/archiveNote','NoteController@archiveNote');
-Route::post('/unarchiveNote','NoteController@unarchiveNote');
-Route::delete('/deleteNote','NoteController@deleteNote');
-Route::get('/displayNote','NoteController@displayNote');
+Route::put('/setReminder','NoteController@setReminder');
+Route::put('/trashNote','NoteController@trashNote');
+Route::put('/restoreNote','NoteController@restoreNote');
+Route::put('/archiveNote','NoteController@archiveNote');
+Route::put('/unarchiveNote','NoteController@unarchiveNote');
+Route::delete('/deleteNote/{id}','NoteController@deleteNote');
 Route::get('/displayTrashNote','NoteController@displayTrashNote');
 Route::get('/displayArchiveNote','NoteController@displayArchiveNote');
 Route::get('/displayReminder','NoteController@displayReminder');

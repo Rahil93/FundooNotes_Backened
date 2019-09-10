@@ -65,13 +65,17 @@ class NoteController extends Controller
 
     public function displayNote(Request $request)
     {
-        $notes = Notes::where(['user_id' => $request,'is_trash' => '0' , 'is_archived' => '0'])->all();
+        $token = $request->header('Authorization');
+        $tokenArray = preg_split("/\./",$token);
+        $decodetoken = base64_decode($tokenArray[1]);
+        $decodetoken = json_decode($decodetoken,true);
+        $user_id = $decodetoken['sub'];
 
-        foreach ($notes as $note) 
-        {
-           echo "<pre>";
-           echo json_encode($note)."<br>";
-        }
+        $notes = Notes::where(['user_id' => $user_id,'is_trash' => '0' , 'is_archived' => '0'])
+                        ->get(['id','title','description']);
+
+        return response()->json(['message' => $notes],200);
+       
     }
 
     public function trashNote(Request $request)
@@ -97,17 +101,21 @@ class NoteController extends Controller
 
     public function displayTrashNote(Request $request)
     {
-        $notes = Notes::where(['user_id' => $request,'is_trash' => '1'])->all();
+        $token = $request->header('Authorization');
+        $tokenArray = preg_split("/\./",$token);
+        $decodetoken = base64_decode($tokenArray[1]);
+        $decodetoken = json_decode($decodetoken,true);
+        $user_id = $decodetoken['sub'];
 
-        foreach ($notes as $note) 
-        {
-           echo "<pre>";
-           echo json_encode($note)."<br>";
-        }
+        $notes = Notes::where(['user_id' => $user_id,'is_trash' => '1'])
+                        ->get(['id','title','description']);
+
+        return response()->json(['message' => $notes],200);
     }
 
     public function restoreNote(Request $request)
     {
+        // return response()->json(['message' => 'Hi its found'],200);
         $note = Notes::find($request['id']);
         if ($note) 
         {
@@ -169,18 +177,21 @@ class NoteController extends Controller
 
     public function displayArchiveNote(Request $request)
     {
-        $notes = Notes::where(['user_id' => $request,'is_archived' => '1'])->all();
+        $token = $request->header('Authorization');
+        $tokenArray = preg_split("/\./",$token);
+        $decodetoken = base64_decode($tokenArray[1]);
+        $decodetoken = json_decode($decodetoken,true);
+        $user_id = $decodetoken['sub'];
 
-        foreach ($notes as $note) 
-        {
-           echo "<pre>";
-           echo json_encode($note)."<br>";
-        }
+        $notes = Notes::where(['user_id' => $user_id,'is_archived' => '1'])
+                        ->get(['id','title','description']);
+
+        return response()->json(['message' => $notes],200);
     }
 
-    public function deleteNote()
+    public function deleteNote($id)
     {
-        $note = Notes::find($request['id'])->delete();
+        $note = Notes::find($id)->delete();
         if ($note) 
         {
             return response()->json(['message' => 'Note Deleted Successfully'],200);
