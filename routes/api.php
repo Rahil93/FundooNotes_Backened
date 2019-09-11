@@ -67,6 +67,7 @@ Route::delete('/deleteNote/{id}','NoteController@deleteNote');
 Route::get('/displayTrashNote','NoteController@displayTrashNote');
 Route::get('/displayArchiveNote','NoteController@displayArchiveNote');
 Route::get('/displayReminder','NoteController@displayReminder');
+Route::put('/setColor','NoteController@setColor');
 
 
 

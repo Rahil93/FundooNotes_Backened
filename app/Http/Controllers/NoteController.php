@@ -72,7 +72,7 @@ class NoteController extends Controller
         $user_id = $decodetoken['sub'];
 
         $notes = Notes::where(['user_id' => $user_id,'is_trash' => '0' , 'is_archived' => '0'])
-                        ->get(['id','title','description']);
+                        ->get(['id','title','description','color']);
 
         return response()->json(['message' => $notes],200);
        
@@ -108,14 +108,13 @@ class NoteController extends Controller
         $user_id = $decodetoken['sub'];
 
         $notes = Notes::where(['user_id' => $user_id,'is_trash' => '1'])
-                        ->get(['id','title','description']);
+                        ->get(['id','title','description','color']);
 
         return response()->json(['message' => $notes],200);
     }
 
     public function restoreNote(Request $request)
     {
-        // return response()->json(['message' => 'Hi its found'],200);
         $note = Notes::find($request['id']);
         if ($note) 
         {
@@ -183,8 +182,8 @@ class NoteController extends Controller
         $decodetoken = json_decode($decodetoken,true);
         $user_id = $decodetoken['sub'];
 
-        $notes = Notes::where(['user_id' => $user_id,'is_archived' => '1'])
-                        ->get(['id','title','description']);
+        $notes = Notes::where(['user_id' => $user_id,'is_archived' => '1','is_trash' => '0'])
+                        ->get(['id','title','description','color']);
 
         return response()->json(['message' => $notes],200);
     }
@@ -202,7 +201,24 @@ class NoteController extends Controller
         }
     }
 
-    
+    public function setColor(Request $request)
+    {
+        $note = Notes::find($request['id']);
+        if ($note) 
+        {
+            $note->color = $request['color'];
+            if ($note->save()) {
+                return response()->json(['message' => 'Note background color changed'],200);
+            }
+            else {
+                return response()->json(['message' => 'Error while changing background color'],400);
+            }
+        }
+        else 
+        {
+            return reponse()->json(['message' => 'Note id not found'],404);
+        }
+    }
 
     public function setReminder(Request $request)
     {
