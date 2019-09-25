@@ -7,36 +7,31 @@ use Illuminate\Support\Facades\Input;
 Use App\Model\Notes;
 Use App\Model\Users;
 Use App\Exceptions\Handler;
+use Illuminate\Support\Facades\Auth;
 
 class NoteController extends Controller
 {
     public function createNote(Request $request)
     {
         $input = $request->all();
-        $token = $input['token'];
+        $token = $request->header('Authorization');
         $tokenArray = preg_split("/\./",$token);
         $decodetoken = base64_decode($tokenArray[1]);
         $decodetoken = json_decode($decodetoken,true);
         $user_id = $decodetoken['sub'];
-        unset($input['token']);
+        // unset($input['token']);
         $input['user_id'] = $user_id;
         
-        if (preg_match('/\s/',$input['title']) == true && preg_match('/\s/',$input['description']) == true) 
+        
+        if ($input['title'] == null && $input['description'] == null) 
         {
-            $input['is_trash'] = 1;
-            $note = Notes::create($input);
-
-            return response()->json(["Message" => "Inserted Successfully with blank space in trash"],200);
-        }
-        elseif ($input['title'] == null && $input['description'] == null) 
-        {
-            return response()->json(["Message" => "Title & description must not be empty"],400);         
+            return response()->json(['Message' => 'Title & description must not be empty'],400);         
         }
         else 
         {
             $note = Notes::create($input);
 
-            return response()->json(["Message" => "Note Created Successfully"],200);
+            return response()->json(['Message' => 'Note Created Successfully'],200);
         }
         
     }
@@ -71,10 +66,10 @@ class NoteController extends Controller
         $decodetoken = json_decode($decodetoken,true);
         $user_id = $decodetoken['sub'];
 
-        $notes = Notes::where(['user_id' => $user_id,'is_trash' => '0' , 'is_archived' => '0'])
+        $notes = Notes::with('labels')->where(['user_id' => $user_id,'is_trash' => '0' , 'is_archived' => '0'])
                         ->get(['id','title','description','color']);
 
-        return response()->json(['message' => $notes],200);
+        return response()->json(['data' => $notes],200);
        
     }
 
@@ -107,10 +102,10 @@ class NoteController extends Controller
         $decodetoken = json_decode($decodetoken,true);
         $user_id = $decodetoken['sub'];
 
-        $notes = Notes::where(['user_id' => $user_id,'is_trash' => '1'])
+        $notes = Notes::with('labels')->where(['user_id' => $user_id,'is_trash' => '1'])
                         ->get(['id','title','description','color']);
 
-        return response()->json(['message' => $notes],200);
+        return response()->json(['data' => $notes],200);
     }
 
     public function restoreNote(Request $request)
@@ -182,10 +177,10 @@ class NoteController extends Controller
         $decodetoken = json_decode($decodetoken,true);
         $user_id = $decodetoken['sub'];
 
-        $notes = Notes::where(['user_id' => $user_id,'is_archived' => '1','is_trash' => '0'])
+        $notes = Notes::with('labels')->where(['user_id' => $user_id,'is_archived' => '1','is_trash' => '0'])
                         ->get(['id','title','description','color']);
 
-        return response()->json(['message' => $notes],200);
+        return response()->json(['data' => $notes],200);
     }
 
     public function deleteNote($id)

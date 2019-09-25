@@ -11,8 +11,6 @@ use App\Model\Users;
 use Illuminate\Support\Facades\Hash;
 use Cloudinary\Uploader;
 
-
-
 class UserController extends Controller
 {
     
@@ -96,9 +94,19 @@ class UserController extends Controller
 
     public function login(Request $request)
     {
+        $validator = Validator::make($request->all(),
+        [
+            'email' => 'required|email',
+            'password' => 'required|min:8',
+        ]);
+
+        if ($validator->fails()) 
+        {
+            return response()->json(['error' => $validator->errors()],400);
+        }
+
         $input = $request->all();
         
-
         $credential = ['email' => $input['email'], 'password' => $input['password']];
         if (Auth::attempt($credential)) 
         {
@@ -197,25 +205,36 @@ class UserController extends Controller
         
     }
 
+    public function userDetail(Request $request)
+    {
+        $token = $request->header('Authorization');
+        $tokenArray = preg_split("/\./",$token);
+        $decodetoken = base64_decode($tokenArray[1]);
+        $decodetoken = json_decode($decodetoken,true);
+        $user_id = $decodetoken['sub'];
+
+        $user = Users::where('id',$user_id)->get(['firstname','lastname','email']);
+
+        return response()->json(['data' => $user],200);
+    }
+
     public function uploadImage(Request $request)
     {
-        $validator = Validator::make($request->all(),
-                [
-                    'photo' => 'required|image|mimes:jpeg,jpg,bmp,png'
-                ]);
-
-        if ($validator->fails()) 
-        {
-            return response()->json(['error' => $validator->errors()],400);
-        }
         
-        $user = Users::find($request['id']);
+        $token = $request->header('Authorization');
+        $tokenArray = preg_split("/\./",$token);
+        $decodetoken = base64_decode($tokenArray[1]);
+        $decodetoken = json_decode($decodetoken,true);
+        $user_id = $decodetoken['sub'];
+        
+        $user = Users::find($user_id);
 
         if ($user) 
         {
-            if ($user->profile_pics == null) 
+            if ($user->profile_pics == 'default') 
             {
-                $this->upload($request['photo'],$user);
+                $response = $this->upload($request['path'],$user);
+                return $response;
             }
             else 
             {
@@ -223,7 +242,8 @@ class UserController extends Controller
                 $delete = Uploader::destroy($tag);
                 if ($delete) 
                 {
-                     $this->upload($request['photo'],$user);                           
+                     $response = $this->upload($request['path'],$user);  
+                     return $response;                         
                 }
             }
             
@@ -236,8 +256,10 @@ class UserController extends Controller
 
     public function upload($photo,$user)
     {
+
         $upload = Uploader::upload($photo);
         $pics = $upload['public_id'];
+
         $user->profile_pics = $pics;
 
         if ($user->save()) 
@@ -252,14 +274,19 @@ class UserController extends Controller
 
     public function displayImage(Request $request)
     {
-        $user = Users::find($request['id']);
+        $token = $request->header('Authorization');
+        $tokenArray = preg_split("/\./",$token);
+        $decodetoken = base64_decode($tokenArray[1]);
+        $decodetoken = json_decode($decodetoken,true);
+        $user_id = $decodetoken['sub'];
+
+        $user = Users::find($user_id);
 
         if ($user) 
         {
             $tag = $user->profile_pics;
-            $img = cl_image_tag($tag);
-            print_r($img);
-            return response()->json(['message' => 'Successfully Uploaded'],200);
+            $img = cloudinary_url($tag,array("width" => 100, "height" => 150, "crop" => "fill","gravity"=>"faces"));
+            return response()->json(['data' => $img],200);
         }
         else 
         {
@@ -273,7 +300,7 @@ class UserController extends Controller
 
         if ($user) 
         {
-            if ($user->profile_pics == null) 
+            if ($user->profile_pics == 'default') 
             {
                 return response()->json(['message' => 'Profile pics is already removed']);
             }
@@ -296,6 +323,44 @@ class UserController extends Controller
         else 
         {
             return response()->json(['message' => 'Id not found'],404);
+        }
+    }
+
+    public function socialLogin(Request $request)
+    {
+        $validator = Validator::make($request->all(),
+                [
+                    'id' => 'required',
+                    'firstname' => 'required|alpha',
+                    'lastname' => 'required|alpha',
+                    'email' => 'required|email',
+                    'profile_pics' => 'required',
+
+                ]);
+
+        if ($validator->fails()) 
+        {
+            return response()->json(['error' => $validator->errors()],400);
+        }
+
+        $input = $request->all();
+
+        $user = Users::find($input['id']);
+        if (!$user) 
+        {
+            $input['email_verified'] = 1;
+            $user = Users::create($input);
+        }
+
+        if ($user) 
+        {
+            $token = $user->createToken('star')->accessToken;
+             
+            return response()->json(['message' => 'Authorized User','token' => $token],200);
+        }
+        else 
+        {
+            return response()->json(['message' => 'Unauthorized User'],400);
         }
     }
 

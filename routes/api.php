@@ -30,11 +30,32 @@ Route::group([
 Route::group([
     'middleware' => 'auth:api'
 ],function(){
+    Route::post('/createNote','NoteController@createNote');
+    Route::put('/editNote','NoteController@editNote');
+    Route::put('/setReminder','NoteController@setReminder');
+    Route::put('/trashNote','NoteController@trashNote');
+    Route::put('/restoreNote','NoteController@restoreNote');
+    Route::put('/archiveNote','NoteController@archiveNote');
+    Route::put('/unarchiveNote','NoteController@unarchiveNote');
+    Route::delete('/deleteNote/{id}','NoteController@deleteNote');
+    
+    Route::get('/displayTrashNote','NoteController@displayTrashNote');
+    Route::get('/displayArchiveNote','NoteController@displayArchiveNote');
+    Route::get('/displayReminder','NoteController@displayReminder');
+    Route::put('/setColor','NoteController@setColor');
+
+    Route::post('/createlabel','LabelController@createLabel');
+    Route::delete('/deletelabel/{id}','LabelController@deleteLabel');
+    Route::put('/editlabel','LabelController@editLabel');
+    Route::get('/displaylabel','LabelController@displayLabel');
 });
+Route::delete('/deletenotelabel/{id}','LabelController@deleteNoteLabel');
+Route::post('/createnotelabel','LabelController@createNoteLabel');
+Route::get('/displaynotelabel/{noteId}','LabelController@displayNoteLabel');
+Route::get('/displayNote','NoteController@displayNote');
 
 Route::post('/login','UserController@login');
 
-Route::get('/displayNote','NoteController@displayNote');
 
 Route::post('/register','UserController@registerUser');
 Route::get('/register/verifyEmail/{token}','UserController@verifyEmail');
@@ -43,34 +64,23 @@ Route::put('/resetpassword/{token}','UserController@resetPassword');
 Route::put('/upload','UserController@uploadImage');
 Route::get('/fetchimage','UserController@displayImage');
 Route::delete('/remove','UserController@removeImage');
+Route::get('/userdetails','UserController@userDetail');
 
-Route::post('/createlabel','LabelController@createLabel');
-Route::delete('/deletelabel','LabelController@deleteLabel');
-Route::put('/createnotelabel','LabelController@createNoteLabel');
-Route::delete('/deletenotelabel','LabelController@deleteNoteLabel');
-Route::put('/editlabel','LabelController@editLabel');
+
 
 Route::post('/addcollab','CollabController@addCollab');
-Route::put('/removecollab','CollabController@removeCollab');
+Route::delete('/removecollab','CollabController@removeCollab');
+Route::get('/displaycollab','CollabController@displayCollabNotes');
 
 Route::delete('/deletechecklist', 'ChecklistController@deleteChecklist');
 
 
-Route::post('/createNote','NoteController@createNote');
-Route::put('/editNote','NoteController@editNote');
-Route::put('/setReminder','NoteController@setReminder');
-Route::put('/trashNote','NoteController@trashNote');
-Route::put('/restoreNote','NoteController@restoreNote');
-Route::put('/archiveNote','NoteController@archiveNote');
-Route::put('/unarchiveNote','NoteController@unarchiveNote');
-Route::delete('/deleteNote/{id}','NoteController@deleteNote');
+
+
+Route::get('/displayNote','NoteController@displayNote');
 Route::get('/displayTrashNote','NoteController@displayTrashNote');
 Route::get('/displayArchiveNote','NoteController@displayArchiveNote');
-Route::get('/displayReminder','NoteController@displayReminder');
-Route::put('/setColor','NoteController@setColor');
 
 
-
-
-
+Route::post('/facebook', 'UserController@socialLogin');
 

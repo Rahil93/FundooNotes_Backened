@@ -14,7 +14,7 @@ class Notes extends Model
 
     public function labels()
     {
-        return $this->belongsToMany('\App\Model\Labels');
+        return $this->belongsToMany('\App\Model\Labels','labels_notes')->withPivot('id');
     }
 
     public function users()
