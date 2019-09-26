@@ -66,8 +66,10 @@ class NoteController extends Controller
         $decodetoken = json_decode($decodetoken,true);
         $user_id = $decodetoken['sub'];
 
-        $notes = Notes::with('labels')->where(['user_id' => $user_id,'is_trash' => '0' , 'is_archived' => '0'])
-                        ->get(['id','title','description','color']);
+        $notes = Notes::with('labels')
+                        ->where(['user_id' => $user_id,'is_trash' => '0' , 'is_archived' => '0'])
+                        ->orderBy('index')
+                        ->get(['id','title','description','color','index']);
 
         return response()->json(['data' => $notes],200);
        
@@ -246,6 +248,33 @@ class NoteController extends Controller
             echo "<pre>";
             echo json_encode($note)."<br>";
         }
+    }
+
+    public function saveIndex(Request $request)
+    {
+        $noteData = $request->all();
+
+        $token = $request->header('Authorization');
+        $tokenArray = preg_split("/\./",$token);
+        $decodetoken = base64_decode($tokenArray[1]);
+        $decodetoken = json_decode($decodetoken,true);
+        $user_id = $decodetoken['sub'];
+
+        $notes = Notes::where('user_id',$user_id)->get();
+
+        foreach ($notes as $note) {
+            $id = $note->id;
+
+            foreach ($noteData as $noteFrontend) {
+                if ($id == $noteFrontend['id']) {
+                    $note->index = $noteFrontend['index'];
+                    $note->save();
+                }
+            }
+        }
+
+        return response()->json(['message' =>  'Successfully done!'],200);
+
     }
 
 }

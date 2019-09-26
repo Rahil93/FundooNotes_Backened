@@ -43,6 +43,7 @@ Route::group([
     Route::get('/displayArchiveNote','NoteController@displayArchiveNote');
     Route::get('/displayReminder','NoteController@displayReminder');
     Route::put('/setColor','NoteController@setColor');
+    
 
     Route::post('/createlabel','LabelController@createLabel');
     Route::delete('/deletelabel/{id}','LabelController@deleteLabel');
@@ -84,3 +85,4 @@ Route::get('/displayArchiveNote','NoteController@displayArchiveNote');
 
 Route::post('/facebook', 'UserController@socialLogin');
 
+Route::put('/saveIndex','NoteController@saveIndex');
