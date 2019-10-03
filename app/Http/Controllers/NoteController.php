@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
 Use App\Model\Notes;
 Use App\Model\Users;
+Use App\Model\UsersNotes;
 Use App\Exceptions\Handler;
 use Illuminate\Support\Facades\Auth;
 
@@ -65,13 +66,45 @@ class NoteController extends Controller
         $decodetoken = base64_decode($tokenArray[1]);
         $decodetoken = json_decode($decodetoken,true);
         $user_id = $decodetoken['sub'];
+        
+        $collabNote = UsersNotes::where('users_id',$user_id);
+        
+        if ($collabNote) {
 
-        $notes = Notes::with('labels')
+            $collabNotes = UsersNotes::where('users_id',$user_id)->get(['notes_id']);
+
+            foreach ($collabNotes as $notes) 
+            {
+                $collab = Notes::where(['id' => $notes['notes_id'],'is_trash' => '0' , 'is_archived' => '0'])->get(['id','title','description','color','index','user_id']);
+                $collabNote = $collab->merge($collabNote);
+
+                for ($i=0; $i < sizeOf($collabNote); $i++) 
+                { 
+                    $user = Users::where('id', $collabNote[$i]['user_id'])->get('email');
+                    $collabNote[$i]['users'] = $user;
+                }          
+            }
+
+
+            $notes = Notes::with('labels','users')
+                            ->where(['user_id' => $user_id,'is_trash' => '0' , 'is_archived' => '0'])
+                            ->orderBy('index')
+                            ->get(['id','title','description','color','index']);
+
+            $mergenote = $notes->merge($collabNote);
+
+            return response()->json(['data' => $mergenote,'u'=>$collabNote],200);
+        }
+        else 
+        {
+            $notes = Notes::with('labels','users')
                         ->where(['user_id' => $user_id,'is_trash' => '0' , 'is_archived' => '0'])
                         ->orderBy('index')
                         ->get(['id','title','description','color','index']);
 
-        return response()->json(['data' => $notes],200);
+
+            return response()->json(['data' => $notes],200);
+        }
        
     }
 
@@ -104,10 +137,19 @@ class NoteController extends Controller
         $decodetoken = json_decode($decodetoken,true);
         $user_id = $decodetoken['sub'];
 
-        $notes = Notes::with('labels')->where(['user_id' => $user_id,'is_trash' => '1'])
+        $collabNotes = UsersNotes::where('users_id',$user_id)->get(['notes_id']);
+
+        foreach ($collabNotes as $notes) 
+        {
+            $collabNote = Notes::where(['id' => $notes['notes_id'],'is_trash' => '1'])->get(['id','title','description','color','index']);            
+        }
+
+        $notes = Notes::with('labels','users')->where(['user_id' => $user_id,'is_trash' => '1'])
                         ->get(['id','title','description','color']);
 
-        return response()->json(['data' => $notes],200);
+        $mergenote = $notes->merge($collabNote);
+
+        return response()->json(['data' => $mergenote],200);
     }
 
     public function restoreNote(Request $request)
@@ -179,10 +221,19 @@ class NoteController extends Controller
         $decodetoken = json_decode($decodetoken,true);
         $user_id = $decodetoken['sub'];
 
-        $notes = Notes::with('labels')->where(['user_id' => $user_id,'is_archived' => '1','is_trash' => '0'])
+        $collabNotes = UsersNotes::where('users_id',$user_id)->get(['notes_id']);
+
+        foreach ($collabNotes as $notes) 
+        {
+            $collabNote = Notes::where(['id' => $notes['notes_id'],'is_trash' => '0' , 'is_archived' => '1'])->get(['id','title','description','color','index']);            
+        }
+
+        $notes = Notes::with('labels','users')->where(['user_id' => $user_id,'is_archived' => '1','is_trash' => '0'])
                         ->get(['id','title','description','color']);
 
-        return response()->json(['data' => $notes],200);
+        $mergenote = $notes->merge($collabNote);
+
+        return response()->json(['data' => $mergenote],200);
     }
 
     public function deleteNote($id)

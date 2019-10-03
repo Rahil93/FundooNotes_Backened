@@ -19,6 +19,6 @@ class Notes extends Model
 
     public function users()
     {
-        return $this->belongsToMany('\App\Model\Users','users_notes');
+        return $this->belongsToMany('\App\Model\Users','users_notes')->withPivot('id');
     }
 }

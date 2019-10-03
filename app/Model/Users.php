@@ -44,7 +44,7 @@ class Users extends Authenticatable
 
     public function notes()
     {
-        return $this->belongsToMany('\App\Model\Notes','users_notes');
+        return $this->belongsToMany('\App\Model\Notes','users_notes')->withPivot('id');
     }
 
     

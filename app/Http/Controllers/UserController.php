@@ -112,7 +112,6 @@ class UserController extends Controller
         {
             $user = Auth::user();
             $token = $user->createToken('star')->accessToken;
-            // if ($user->password === $input['password']) {
                 if ($user->email_verified) 
                 {
                     return response()->json(['message' => 'Valid User.','data' => $token],200);   
@@ -121,12 +120,6 @@ class UserController extends Controller
                 {
                     return response()->json(['message' => 'Please Verify Your Email.'],400);           
                 }
-            // }
-            // else 
-            // {
-            //     return response()->json(['message' => 'Invalid Password.'],400);
-            // }  
-            
         }
         else
         {
@@ -268,7 +261,7 @@ class UserController extends Controller
         }
         else 
         {
-            return response()->json(['message' => 'Error while Uploadind'],400);
+            return response()->json(['message' => 'Error while Uploading'],400);
         }
     }
 
@@ -333,7 +326,6 @@ class UserController extends Controller
                     'id' => 'required',
                     'firstname' => 'required|alpha',
                     'lastname' => 'required|alpha',
-                    'email' => 'required|email',
                     'profile_pics' => 'required',
 
                 ]);
@@ -348,7 +340,6 @@ class UserController extends Controller
         $user = Users::find($input['id']);
         if (!$user) 
         {
-            $input['email_verified'] = 1;
             $user = Users::create($input);
         }
 

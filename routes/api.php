@@ -70,7 +70,7 @@ Route::get('/userdetails','UserController@userDetail');
 
 
 Route::post('/addcollab','CollabController@addCollab');
-Route::delete('/removecollab','CollabController@removeCollab');
+Route::delete('/removecollab/{id}','CollabController@removeCollab');
 Route::get('/displaycollab','CollabController@displayCollabNotes');
 
 Route::delete('/deletechecklist', 'ChecklistController@deleteChecklist');
