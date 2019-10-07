@@ -20,7 +20,6 @@ class NoteController extends Controller
         $decodetoken = base64_decode($tokenArray[1]);
         $decodetoken = json_decode($decodetoken,true);
         $user_id = $decodetoken['sub'];
-        // unset($input['token']);
         $input['user_id'] = $user_id;
         
         
@@ -140,19 +139,47 @@ class NoteController extends Controller
         $decodetoken = json_decode($decodetoken,true);
         $user_id = $decodetoken['sub'];
 
-        $collabNotes = UsersNotes::where('users_id',$user_id)->get(['notes_id']);
-
-        foreach ($collabNotes as $notes) 
+        $collabNote = UsersNotes::where('users_id',$user_id);
+        
+        if ($collabNote) 
         {
-            $collabNote = Notes::where(['id' => $notes['notes_id'],'is_trash' => '1'])->get(['id','title','description','color','index']);            
+
+            $collabNotes = UsersNotes::where('users_id',$user_id)->get(['notes_id']);
+
+            foreach ($collabNotes as $notes) 
+            {
+                $collab = Notes::where(['id' => $notes['notes_id'],'is_trash' => '1'])->get(['id','title','description','color','index','user_id']);
+                $collabNote = $collab->merge($collabNote);
+
+                for ($i=0; $i < sizeOf($collabNote); $i++) 
+                { 
+                    $user = Users::where('id', $collabNote[$i]['user_id'])->get('email');
+                    $collabNote[$i]['users'] = $user;
+                    $pivot_id = UsersNotes::where(['users_id'=>$user_id,'notes_id'=>$collabNote[$i]['id']])->get('id');
+                    $collabNote[$i]['users'][$i]['pivot'] = $pivot_id[0];
+                }          
+            }
+
+
+            $notes = Notes::with('labels','users')
+                            ->where(['user_id' => $user_id,'is_trash' => '1'])
+                            ->orderBy('index')
+                            ->get(['id','title','description','color','index','reminder']);
+
+            $mergenote = $notes->merge($collabNote);
+
+            return response()->json(['data' => $mergenote],200);
         }
+        else 
+        {
+            $notes = Notes::with('labels','users')
+                        ->where(['user_id' => $user_id,'is_trash' => '1'])
+                        ->orderBy('index')
+                        ->get(['id','title','description','color','index']);
 
-        $notes = Notes::with('labels','users')->where(['user_id' => $user_id,'is_trash' => '1'])
-                        ->get(['id','title','description','color']);
 
-        $mergenote = $notes->merge($collabNote);
-
-        return response()->json(['data' => $mergenote],200);
+            return response()->json(['data' => $notes],200);
+        }
     }
 
     public function restoreNote(Request $request)
@@ -224,19 +251,47 @@ class NoteController extends Controller
         $decodetoken = json_decode($decodetoken,true);
         $user_id = $decodetoken['sub'];
 
-        $collabNotes = UsersNotes::where('users_id',$user_id)->get(['notes_id']);
-
-        foreach ($collabNotes as $notes) 
+        $collabNote = UsersNotes::where('users_id',$user_id);
+        
+        if ($collabNote) 
         {
-            $collabNote = Notes::where(['id' => $notes['notes_id'],'is_trash' => '0' , 'is_archived' => '1'])->get(['id','title','description','color','index']);            
+
+            $collabNotes = UsersNotes::where('users_id',$user_id)->get(['notes_id']);
+
+            foreach ($collabNotes as $notes) 
+            {
+                $collab = Notes::where(['id' => $notes['notes_id'],'is_trash' => '0' , 'is_archived' => '1'])->get(['id','title','description','color','index','user_id']);
+                $collabNote = $collab->merge($collabNote);
+
+                for ($i=0; $i < sizeOf($collabNote); $i++) 
+                { 
+                    $user = Users::where('id', $collabNote[$i]['user_id'])->get('email');
+                    $collabNote[$i]['users'] = $user;
+                    $pivot_id = UsersNotes::where(['users_id'=>$user_id,'notes_id'=>$collabNote[$i]['id']])->get('id');
+                    $collabNote[$i]['users'][$i]['pivot'] = $pivot_id[0];
+                }          
+            }
+
+
+            $notes = Notes::with('labels','users')
+                            ->where(['user_id' => $user_id,'is_trash' => '0' , 'is_archived' => '1'])
+                            ->orderBy('index')
+                            ->get(['id','title','description','color','index','reminder']);
+
+            $mergenote = $notes->merge($collabNote);
+
+            return response()->json(['data' => $mergenote],200);
         }
+        else 
+        {
+            $notes = Notes::with('labels','users')
+                        ->where(['user_id' => $user_id,'is_trash' => '0' , 'is_archived' => '1'])
+                        ->orderBy('index')
+                        ->get(['id','title','description','color','index']);
 
-        $notes = Notes::with('labels','users')->where(['user_id' => $user_id,'is_archived' => '1','is_trash' => '0'])
-                        ->get(['id','title','description','color']);
 
-        $mergenote = $notes->merge($collabNote);
-
-        return response()->json(['data' => $mergenote],200);
+            return response()->json(['data' => $notes],200);
+        }
     }
 
     public function deleteNote($id)
@@ -277,7 +332,6 @@ class NoteController extends Controller
         if ($note) 
         {
             $note->reminder = $request['reminder'];
-            // $note->reminder_time = $request['reminder_time'];
             if ($note->save()) {
                 return response()->json(['message' => 'Note Reminder Set Successfully'],200);
             }
