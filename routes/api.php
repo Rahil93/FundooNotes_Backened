@@ -33,6 +33,7 @@ Route::group([
     Route::post('/createNote','NoteController@createNote');
     Route::put('/editNote','NoteController@editNote');
     Route::put('/setReminder','NoteController@setReminder');
+    Route::delete('/unsetReminder/{id}','NoteController@unsetReminder');
     Route::put('/trashNote','NoteController@trashNote');
     Route::put('/restoreNote','NoteController@restoreNote');
     Route::put('/archiveNote','NoteController@archiveNote');
@@ -41,7 +42,6 @@ Route::group([
     
     Route::get('/displayTrashNote','NoteController@displayTrashNote');
     Route::get('/displayArchiveNote','NoteController@displayArchiveNote');
-    Route::get('/displayReminder','NoteController@displayReminder');
     Route::put('/setColor','NoteController@setColor');
     
 

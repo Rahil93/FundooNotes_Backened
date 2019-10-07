@@ -69,7 +69,8 @@ class NoteController extends Controller
         
         $collabNote = UsersNotes::where('users_id',$user_id);
         
-        if ($collabNote) {
+        if ($collabNote) 
+        {
 
             $collabNotes = UsersNotes::where('users_id',$user_id)->get(['notes_id']);
 
@@ -82,6 +83,8 @@ class NoteController extends Controller
                 { 
                     $user = Users::where('id', $collabNote[$i]['user_id'])->get('email');
                     $collabNote[$i]['users'] = $user;
+                    $pivot_id = UsersNotes::where(['users_id'=>$user_id,'notes_id'=>$collabNote[$i]['id']])->get('id');
+                    $collabNote[$i]['users'][$i]['pivot'] = $pivot_id[0];
                 }          
             }
 
@@ -89,11 +92,11 @@ class NoteController extends Controller
             $notes = Notes::with('labels','users')
                             ->where(['user_id' => $user_id,'is_trash' => '0' , 'is_archived' => '0'])
                             ->orderBy('index')
-                            ->get(['id','title','description','color','index']);
+                            ->get(['id','title','description','color','index','reminder']);
 
             $mergenote = $notes->merge($collabNote);
 
-            return response()->json(['data' => $mergenote,'u'=>$collabNote],200);
+            return response()->json(['data' => $mergenote],200);
         }
         else 
         {
@@ -274,6 +277,7 @@ class NoteController extends Controller
         if ($note) 
         {
             $note->reminder = $request['reminder'];
+            // $note->reminder_time = $request['reminder_time'];
             if ($note->save()) {
                 return response()->json(['message' => 'Note Reminder Set Successfully'],200);
             }
@@ -285,6 +289,21 @@ class NoteController extends Controller
         else 
         {
             return reponse()->json(['message' => 'Note id not found'],404);
+        }
+    }
+
+    public function unsetReminder($id)
+    {
+        $note = Notes::find($id);
+        $note->reminder = null;
+
+        if ($note->save()) 
+        {
+            return response()->json(['message' => 'Reminder remove successfully'],200);
+        }
+        else 
+        {
+            return response()->json(['message' => 'Error while removing reminder'],400);
         }
     }
 
