@@ -86,3 +86,5 @@ Route::get('/displayArchiveNote','NoteController@displayArchiveNote');
 Route::post('/facebook', 'UserController@socialLogin');
 
 Route::put('/saveIndex','NoteController@saveIndex');
+Route::put('/getFirebaseToken','NoteController@pushNotifyToken');
+Route::get('/display','NoteController@displayReminder');

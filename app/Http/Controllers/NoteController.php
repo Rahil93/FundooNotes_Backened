@@ -3,12 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Input;
 Use App\Model\Notes;
 Use App\Model\Users;
 Use App\Model\UsersNotes;
 Use App\Exceptions\Handler;
 use Illuminate\Support\Facades\Auth;
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Client;
 
 class NoteController extends Controller
 {
@@ -361,19 +362,6 @@ class NoteController extends Controller
         }
     }
 
-    public function displayReminder()
-    {
-        $date = date("Y/m/d");
-
-        $notes = Notes::where(['reminder' => $date])->all();
-
-        foreach ($notes as $note) 
-        {
-            echo "<pre>";
-            echo json_encode($note)."<br>";
-        }
-    }
-
     public function saveIndex(Request $request)
     {
         $noteData = $request->all();
@@ -401,5 +389,34 @@ class NoteController extends Controller
 
     }
 
+    public function pushNotifyToken(Request $request)
+    {
+        $token = $request->header('Authorization');
+        $tokenArray = preg_split("/\./",$token);
+        $decodetoken = base64_decode($tokenArray[1]);
+        $decodetoken = json_decode($decodetoken,true);
+        $user_id = $decodetoken['sub'];
+
+        $user = Users::find($user_id);
+
+        if ($user) 
+        {
+            $user->firebase_token = $request['token'];
+
+            if ($user->save()) 
+            {
+                return response()->json(['message' => 'Token received successfully'],200);
+            }
+            else 
+            {
+                return response()->json(['message' => 'Error while receiving token'],400);
+            }
+        }
+        else {
+            return response()->json(['message' => 'Unauthorized User'],400);
+        }
+    }
+
 }
+
 ?>

@@ -3,23 +3,23 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Libraries\RBMQReceiver;
+use App\Libraries\FirebaseNotification;
 
-class EmailCron extends Command
+class FirebaseNotifycron extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'email:cron';
+    protected $signature = 'pushnotification:cron';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Send email to user';
+    protected $description = 'Command description';
 
     /**
      * Create a new command instance.
@@ -38,12 +38,11 @@ class EmailCron extends Command
      */
     public function handle()
     {
-        // \Log::info("Cron is working fine!");
+        \Log::info("Push Cron is working fine!");
 
-        // $objReceiver = new RBMQReceiver();
-        // $objReceiver->sendMail();
+        $objpush = new FirebaseNotification();
+        $objpush->pushNotification();
 
-        // $this->info('Email:Cron Command Run successfully!');
-
+        $this->info('Push:Cron Command Run successfully!');
     }
 }

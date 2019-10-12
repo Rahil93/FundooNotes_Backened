@@ -13,7 +13,8 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        Commands\EmailCron::class
+        Commands\EmailCron::class,
+        Commands\FirebaseNotifycron::class
     ];
 
     /**
@@ -24,8 +25,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('email:cron')
-                 ->everyMinute();
+        // $schedule->command('email:cron')
+        //          ->everyMinute();
+                
+        $schedule->command('pushnotification:cron')
+        ->everyMinute();
     }
 
     /**
